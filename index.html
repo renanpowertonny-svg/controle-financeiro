@@ -8,9 +8,22 @@
 <body>
 
   <h1>Controle Financeiro</h1>
-  <p>Projeto conectado ao Supabase</p>
 
-  <h2>Movimentações:</h2>
+  <h2>Nova Movimentação</h2>
+
+  <input type="text" id="descricao" placeholder="Descrição">
+  <input type="number" id="valor" placeholder="Valor">
+  
+  <select id="tipo">
+    <option value="entrada">Entrada</option>
+    <option value="saida">Saída</option>
+  </select>
+
+  <input type="date" id="data">
+
+  <button onclick="salvar()">Salvar</button>
+
+  <h2>Movimentações</h2>
   <ul id="lista"></ul>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -26,10 +39,11 @@
       async function carregarMovimentacoes() {
         const { data, error } = await client
           .from("movimentacoes")
-          .select("*");
+          .select("*")
+          .order("id", { ascending: false });
 
         if (error) {
-          console.error("Erro ao buscar dados:", error);
+          console.error("Erro ao buscar:", error);
           return;
         }
 
@@ -43,6 +57,37 @@
         });
       }
 
+      window.salvar = async function () {
+
+        const descricao = document.getElementById("descricao").value;
+        const valor = document.getElementById("valor").value;
+        const tipo = document.getElementById("tipo").value;
+        const data = document.getElementById("data").value;
+
+        if (!descricao || !valor || !data) {
+          alert("Preencha todos os campos.");
+          return;
+        }
+
+        const { error } = await client
+          .from("movimentacoes")
+          .insert([
+            { descricao, valor, tipo, data }
+          ]);
+
+        if (error) {
+          console.error("Erro ao inserir:", error);
+          alert("Erro ao salvar.");
+          return;
+        }
+
+        document.getElementById("descricao").value = "";
+        document.getElementById("valor").value = "";
+        document.getElementById("data").value = "";
+
+        carregarMovimentacoes();
+      }
+
       carregarMovimentacoes();
 
     })();
@@ -50,5 +95,4 @@
 
 </body>
 </html>
-
 
