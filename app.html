@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Login - Controle Financeiro</title>
+
+<style>
+body {
+  font-family: Arial;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f4f6f9;
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  width: 300px;
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>Login</h2>
+
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="senha" placeholder="Senha">
+
+<button onclick="login()">Entrar</button>
+<button onclick="registrar()">Criar Conta</button>
+
+<p id="mensagem"></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const supabase = window.supabase.createClient(
+  "https://rsbdxeyplwbaxvrublgr.supabase.co",
+  "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts"
+);
+
+async function login() {
+  const email = document.getElementById("email").value;
+  const senha = document.getElementById("senha").value;
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password: senha
+  });
+
+  if (error) {
+    document.getElementById("mensagem").innerText = error.message;
+    return;
+  }
+
+  window.location.href = "app.html";
+}
+
+async function registrar() {
+  const email = document.getElementById("email").value;
+  const senha = document.getElementById("senha").value;
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password: senha
+  });
+
+  if (error) {
+    document.getElementById("mensagem").innerText = error.message;
+    return;
+  }
+
+  document.getElementById("mensagem").innerText = "Conta criada! Faça login.";
+}
+</script>
+
+</body>
+</html>
