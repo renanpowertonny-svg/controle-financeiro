@@ -13,38 +13,42 @@
   <h2>Movimentações:</h2>
   <ul id="lista"></ul>
 
-  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    const supabaseUrl = "https://rsbdxeyplwbaxvrublgr.supabase.co";
-    const supabaseKey = "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts";
+    (function () {
 
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      const url = "https://rsbdxeyplwbaxvrublgr.supabase.co";
+      const key = "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts";
 
-    async function carregarMovimentacoes() {
-      const { data, error } = await supabase
-        .from("movimentacoes")
-        .select("*");
+      const client = window.supabase.createClient(url, key);
 
-      if (error) {
-        console.error("Erro ao buscar dados:", error);
-        return;
+      async function carregarMovimentacoes() {
+        const { data, error } = await client
+          .from("movimentacoes")
+          .select("*");
+
+        if (error) {
+          console.error("Erro ao buscar dados:", error);
+          return;
+        }
+
+        const lista = document.getElementById("lista");
+        lista.innerHTML = "";
+
+        data.forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = `${item.descricao} - R$ ${item.valor} (${item.tipo})`;
+          lista.appendChild(li);
+        });
       }
 
-      const lista = document.getElementById("lista");
-      lista.innerHTML = "";
+      carregarMovimentacoes();
 
-      data.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = `${item.descricao} - R$ ${item.valor} (${item.tipo})`;
-        lista.appendChild(li);
-      });
-    }
-
-    carregarMovimentacoes();
+    })();
   </script>
 
 </body>
 </html>
+
 
