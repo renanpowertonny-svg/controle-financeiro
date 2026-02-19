@@ -1,98 +1,174 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Controle Financeiro</title>
+<meta charset="UTF-8">
+<title>Controle Financeiro</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  max-width: 900px;
+  margin: 40px auto;
+  background: #f4f6f9;
+}
+
+h1 {
+  text-align: center;
+}
+
+.dashboard {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 30%;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.positivo {
+  color: green;
+}
+
+.negativo {
+  color: red;
+}
+
+form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+input, select, button {
+  padding: 8px;
+}
+</style>
 </head>
 
 <body>
 
-  <h1>Controle Financeiro</h1>
+<h1>Controle Financeiro</h1>
 
-  <h2>Nova Movimentação</h2>
+<div class="dashboard">
+  <div class="card">
+    <h3>Entradas</h3>
+    <p id="totalEntradas">R$ 0</p>
+  </div>
 
-  <input type="text" id="descricao" placeholder="Descrição">
-  <input type="number" id="valor" placeholder="Valor">
+  <div class="card">
+    <h3>Saídas</h3>
+    <p id="totalSaidas">R$ 0</p>
+  </div>
+
+  <div class="card">
+    <h3>Saldo</h3>
+    <p id="saldo">R$ 0</p>
+  </div>
+</div>
+
+<h2>Nova Movimentação</h2>
+
+<form onsubmit="event.preventDefault(); salvar();">
+  <input type="text" id="descricao" placeholder="Descrição" required>
+  <input type="number" id="valor" placeholder="Valor" required>
   
   <select id="tipo">
     <option value="entrada">Entrada</option>
     <option value="saida">Saída</option>
   </select>
 
-  <input type="date" id="data">
+  <input type="date" id="data" required>
+  <button type="submit">Salvar</button>
+</form>
 
-  <button onclick="salvar()">Salvar</button>
+<h2>Movimentações</h2>
+<ul id="lista"></ul>
 
-  <h2>Movimentações</h2>
-  <ul id="lista"></ul>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
 
-  <script>
-    (function () {
+  const url = "https://rsbdxeyplwbaxvrublgr.supabase.co";
+  const key = "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts";
 
-      const url = "https://rsbdxeyplwbaxvrublgr.supabase.co";
-      const key = "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts";
+  const client = window.supabase.createClient(url, key);
 
-      const client = window.supabase.createClient(url, key);
+  async function carregarMovimentacoes() {
+    const { data, error } = await client
+      .from("movimentacoes")
+      .select("*")
+      .order("id", { ascending: false });
 
-      async function carregarMovimentacoes() {
-        const { data, error } = await client
-          .from("movimentacoes")
-          .select("*")
-          .order("id", { ascending: false });
+    if (error) {
+      console.error(error);
+      return;
+    }
 
-        if (error) {
-          console.error("Erro ao buscar:", error);
-          return;
-        }
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
 
-        const lista = document.getElementById("lista");
-        lista.innerHTML = "";
+    let entradas = 0;
+    let saidas = 0;
 
-        data.forEach(item => {
-          const li = document.createElement("li");
-          li.textContent = `${item.descricao} - R$ ${item.valor} (${item.tipo})`;
-          lista.appendChild(li);
-        });
+    data.forEach(item => {
+
+      if (item.tipo === "entrada") {
+        entradas += Number(item.valor);
+      } else {
+        saidas += Number(item.valor);
       }
 
-      window.salvar = async function () {
+      const li = document.createElement("li");
+      li.textContent = `${item.descricao} - R$ ${item.valor} (${item.tipo})`;
+      lista.appendChild(li);
+    });
 
-        const descricao = document.getElementById("descricao").value;
-        const valor = document.getElementById("valor").value;
-        const tipo = document.getElementById("tipo").value;
-        const data = document.getElementById("data").value;
+    const saldo = entradas - saidas;
 
-        if (!descricao || !valor || !data) {
-          alert("Preencha todos os campos.");
-          return;
-        }
+    document.getElementById("totalEntradas").textContent = "R$ " + entradas;
+    document.getElementById("totalSaidas").textContent = "R$ " + saidas;
 
-        const { error } = await client
-          .from("movimentacoes")
-          .insert([
-            { descricao, valor, tipo, data }
-          ]);
+    const saldoElemento = document.getElementById("saldo");
+    saldoElemento.textContent = "R$ " + saldo;
 
-        if (error) {
-          console.error("Erro ao inserir:", error);
-          alert("Erro ao salvar.");
-          return;
-        }
+    saldoElemento.className = saldo >= 0 ? "positivo" : "negativo";
+  }
 
-        document.getElementById("descricao").value = "";
-        document.getElementById("valor").value = "";
-        document.getElementById("data").value = "";
+  window.salvar = async function () {
 
-        carregarMovimentacoes();
-      }
+    const descricao = document.getElementById("descricao").value;
+    const valor = document.getElementById("valor").value;
+    const tipo = document.getElementById("tipo").value;
+    const data = document.getElementById("data").value;
 
-      carregarMovimentacoes();
+    const { error } = await client
+      .from("movimentacoes")
+      .insert([{ descricao, valor, tipo, data }]);
 
-    })();
-  </script>
+    if (error) {
+      console.error(error);
+      alert("Erro ao salvar");
+      return;
+    }
+
+    document.getElementById("descricao").value = "";
+    document.getElementById("valor").value = "";
+    document.getElementById("data").value = "";
+
+    carregarMovimentacoes();
+  }
+
+  carregarMovimentacoes();
+
+})();
+</script>
 
 </body>
 </html>
-
