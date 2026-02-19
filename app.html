@@ -16,6 +16,11 @@ h1 {
   text-align: center;
 }
 
+.logout {
+  float: right;
+  cursor: pointer;
+}
+
 .dashboard {
   display: flex;
   justify-content: space-between;
@@ -36,3 +41,154 @@ form {
   gap: 10px;
   margin-bottom: 20px;
 }
+
+input, select, button {
+  padding: 8px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background: white;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Controle Financeiro</h1>
+<button class="logout" onclick="logout()">Sair</button>
+
+<div class="dashboard">
+  <div class="card">
+    <h3>Entradas</h3>
+    <p id="totalEntradas">R$ 0</p>
+  </div>
+
+  <div class="card">
+    <h3>Saídas</h3>
+    <p id="totalSaidas">R$ 0</p>
+  </div>
+
+  <div class="card">
+    <h3>Saldo</h3>
+    <p id="saldo">R$ 0</p>
+  </div>
+</div>
+
+<h2>Nova Movimentação</h2>
+
+<form onsubmit="adicionarMovimentacao(event)">
+  <input type="text" id="descricao" placeholder="Descrição" required>
+  <input type="number" id="valor" placeholder="Valor" required>
+  
+  <select id="tipo">
+    <option value="entrada">Entrada</option>
+    <option value="saida">Saída</option>
+  </select>
+
+  <input type="date" id="data" required>
+
+  <button type="submit">Salvar</button>
+</form>
+
+<h2>Movimentações</h2>
+<ul id="lista"></ul>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const supabase = window.supabase.createClient(
+  "https://rsbdxeyplwbaxvrublgr.supabase.co",
+  "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts"
+);
+
+// 🔒 Verificar Login
+async function verificarLogin() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    window.location.href = "index.html";
+  }
+}
+
+verificarLogin();
+
+// 🚪 Logout
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = "index.html";
+}
+
+// 📥 Adicionar Movimentação
+async function adicionarMovimentacao(event) {
+  event.preventDefault();
+
+  const { data: { session } } = await supabase.auth.getSession();
+
+  const descricao = document.getElementById("descricao").value;
+  const valor = parseFloat(document.getElementById("valor").value);
+  const tipo = document.getElementById("tipo").value;
+  const data = document.getElementById("data").value;
+
+  await supabase.from("movimentacoes").insert([
+    {
+      descricao,
+      valor,
+      tipo,
+      data,
+      user_id: session.user.id
+    }
+  ]);
+
+  carregarMovimentacoes();
+  event.target.reset();
+}
+
+// 📊 Carregar Movimentações
+async function carregarMovimentacoes() {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  const { data } = await supabase
+    .from("movimentacoes")
+    .select("*")
+    .eq("user_id", session.user.id)
+    .order("data", { ascending: false });
+
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  let entradas = 0;
+  let saidas = 0;
+
+  data.forEach(item => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      ${item.descricao} - R$ ${item.valor} (${item.tipo})
+    `;
+    lista.appendChild(li);
+
+    if (item.tipo === "entrada") {
+      entradas += item.valor;
+    } else {
+      saidas += item.valor;
+    }
+  });
+
+  document.getElementById("totalEntradas").innerText = "R$ " + entradas;
+  document.getElementById("totalSaidas").innerText = "R$ " + saidas;
+  document.getElementById("saldo").innerText = "R$ " + (entradas - saidas);
+}
+
+carregarMovimentacoes();
+</script>
+
+</body>
+</html>
