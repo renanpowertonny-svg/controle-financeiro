@@ -86,7 +86,7 @@ li {
 
 <h2>Nova Movimentação</h2>
 
-<form onsubmit="adicionarMovimentacao(event)">
+<form id="formMov">
   <input type="text" id="descricao" placeholder="Descrição" required>
   <input type="number" id="valor" placeholder="Valor" required>
   
@@ -106,61 +106,59 @@ li {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const supabase = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   "https://rsbdxeyplwbaxvrublgr.supabase.co",
   "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts"
 );
 
-// 🔒 Verificar Login
 async function verificarLogin() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) {
     window.location.href = "index.html";
   }
 }
 
-verificarLogin();
-
-// 🚪 Logout
 async function logout() {
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   window.location.href = "index.html";
 }
 
-// 📥 Adicionar Movimentação
 async function adicionarMovimentacao(event) {
   event.preventDefault();
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) return;
 
   const descricao = document.getElementById("descricao").value;
   const valor = parseFloat(document.getElementById("valor").value);
   const tipo = document.getElementById("tipo").value;
-  const data = document.getElementById("data").value;
+  const dataMov = document.getElementById("data").value;
 
-  await supabase.from("movimentacoes").insert([
+  await supabaseClient.from("movimentacoes").insert([
     {
-      descricao,
-      valor,
-      tipo,
-      data,
+      descricao: descricao,
+      valor: valor,
+      tipo: tipo,
+      data: dataMov,
       user_id: session.user.id
     }
   ]);
 
+  document.getElementById("formMov").reset();
   carregarMovimentacoes();
-  event.target.reset();
 }
 
-// 📊 Carregar Movimentações
 async function carregarMovimentacoes() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) return;
 
-  const { data } = await supabase
+  const { data, error } = await supabaseClient
     .from("movimentacoes")
     .select("*")
     .eq("user_id", session.user.id)
     .order("data", { ascending: false });
+
+  if (error) return;
 
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
@@ -170,9 +168,7 @@ async function carregarMovimentacoes() {
 
   data.forEach(item => {
     const li = document.createElement("li");
-    li.innerHTML = `
-      ${item.descricao} - R$ ${item.valor} (${item.tipo})
-    `;
+    li.innerHTML = item.descricao + " - R$ " + item.valor + " (" + item.tipo + ")";
     lista.appendChild(li);
 
     if (item.tipo === "entrada") {
@@ -187,6 +183,9 @@ async function carregarMovimentacoes() {
   document.getElementById("saldo").innerText = "R$ " + (entradas - saidas);
 }
 
+document.getElementById("formMov").addEventListener("submit", adicionarMovimentacao);
+
+verificarLogin();
 carregarMovimentacoes();
 </script>
 
