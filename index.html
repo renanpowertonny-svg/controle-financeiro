@@ -1,174 +1,121 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Controle Financeiro</title>
+  <meta charset="UTF-8">
+  <title>Login - Controle Financeiro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  max-width: 900px;
-  margin: 40px auto;
-  background: #f4f6f9;
-}
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-h1 {
-  text-align: center;
-}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-.dashboard {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 30px;
-}
+    .login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      width: 300px;
+    }
 
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 30%;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-.positivo {
-  color: green;
-}
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
 
-.negativo {
-  color: red;
-}
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
 
-form {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
+    .btn-login {
+      background: #007bff;
+    }
 
-input, select, button {
-  padding: 8px;
-}
-</style>
+    .btn-register {
+      background: #28a745;
+    }
+
+    .message {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 14px;
+      color: red;
+    }
+  </style>
 </head>
-
 <body>
 
-<h1>Controle Financeiro</h1>
+  <div class="login-box">
+    <h2>Login</h2>
 
-<div class="dashboard">
-  <div class="card">
-    <h3>Entradas</h3>
-    <p id="totalEntradas">R$ 0</p>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Senha" required>
+
+    <button class="btn-login" onclick="login()">Entrar</button>
+    <button class="btn-register" onclick="register()">Criar Conta</button>
+
+    <div class="message" id="message"></div>
   </div>
 
-  <div class="card">
-    <h3>Saídas</h3>
-    <p id="totalSaidas">R$ 0</p>
-  </div>
+  <script>
+    const supabaseUrl = "COLE_AQUI_SUA_SUPABASE_URL";
+    const supabaseKey = "COLE_AQUI_SUA_SUPABASE_ANON_KEY";
 
-  <div class="card">
-    <h3>Saldo</h3>
-    <p id="saldo">R$ 0</p>
-  </div>
-</div>
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-<h2>Nova Movimentação</h2>
+    async function register() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-<form onsubmit="event.preventDefault(); salvar();">
-  <input type="text" id="descricao" placeholder="Descrição" required>
-  <input type="number" id="valor" placeholder="Valor" required>
-  
-  <select id="tipo">
-    <option value="entrada">Entrada</option>
-    <option value="saida">Saída</option>
-  </select>
+      const { error } = await supabase.auth.signUp({
+        email: email,
+        password: password
+      });
 
-  <input type="date" id="data" required>
-  <button type="submit">Salvar</button>
-</form>
-
-<h2>Movimentações</h2>
-<ul id="lista"></ul>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-(function () {
-
-  const url = "https://rsbdxeyplwbaxvrublgr.supabase.co";
-  const key = "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts";
-
-  const client = window.supabase.createClient(url, key);
-
-  async function carregarMovimentacoes() {
-    const { data, error } = await client
-      .from("movimentacoes")
-      .select("*")
-      .order("id", { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    const lista = document.getElementById("lista");
-    lista.innerHTML = "";
-
-    let entradas = 0;
-    let saidas = 0;
-
-    data.forEach(item => {
-
-      if (item.tipo === "entrada") {
-        entradas += Number(item.valor);
+      if (error) {
+        document.getElementById("message").innerText = error.message;
       } else {
-        saidas += Number(item.valor);
+        document.getElementById("message").innerText = "Conta criada com sucesso! Agora faça login.";
       }
-
-      const li = document.createElement("li");
-      li.textContent = `${item.descricao} - R$ ${item.valor} (${item.tipo})`;
-      lista.appendChild(li);
-    });
-
-    const saldo = entradas - saidas;
-
-    document.getElementById("totalEntradas").textContent = "R$ " + entradas;
-    document.getElementById("totalSaidas").textContent = "R$ " + saidas;
-
-    const saldoElemento = document.getElementById("saldo");
-    saldoElemento.textContent = "R$ " + saldo;
-
-    saldoElemento.className = saldo >= 0 ? "positivo" : "negativo";
-  }
-
-  window.salvar = async function () {
-
-    const descricao = document.getElementById("descricao").value;
-    const valor = document.getElementById("valor").value;
-    const tipo = document.getElementById("tipo").value;
-    const data = document.getElementById("data").value;
-
-    const { error } = await client
-      .from("movimentacoes")
-      .insert([{ descricao, valor, tipo, data }]);
-
-    if (error) {
-      console.error(error);
-      alert("Erro ao salvar");
-      return;
     }
 
-    document.getElementById("descricao").value = "";
-    document.getElementById("valor").value = "";
-    document.getElementById("data").value = "";
+    async function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-    carregarMovimentacoes();
-  }
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
 
-  carregarMovimentacoes();
-
-})();
-</script>
+      if (error) {
+        document.getElementById("message").innerText = error.message;
+      } else {
+        window.location.href = "app.html";
+      }
+    }
+  </script>
 
 </body>
 </html>
