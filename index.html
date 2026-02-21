@@ -1,75 +1,64 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Login - Controle Financeiro</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Controle Financeiro</title>
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
 
-    .login-box {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      width: 320px;
-    }
+.login-box {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    width: 320px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
 
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
+button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+}
 
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      color: white;
-      font-weight: bold;
-    }
+.btn-login { background: #007bff; }
+.btn-register { background: #28a745; }
 
-    .btn-login {
-      background: #007bff;
-    }
-
-    .btn-register {
-      background: #28a745;
-    }
-
-    .message {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 14px;
-      color: red;
-      min-height: 20px;
-    }
-  </style>
+.message {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
+    min-height: 20px;
+    color: red;
+}
+</style>
 </head>
+
 <body>
 
-  <div class="login-box">
+<div class="login-box">
     <h2>Acesso ao Sistema</h2>
 
     <input type="email" id="email" placeholder="Digite seu email">
@@ -79,60 +68,55 @@
     <button class="btn-register" onclick="register()">Criar Conta</button>
 
     <div class="message" id="message"></div>
-  </div>
+</div>
 
-  <script>
-    // 🔴 COLE SUA URL AQUI
-    const supabaseUrl = "https://rsbdxeyplwbaxvrublgr.supabase.co"; 
+<script>
 
-    // 🔴 COLE SUA ANON KEY AQUI
-    const supabaseKey = "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts";
+const supabaseUrl = "COLE_SUA_URL_AQUI";
+const supabaseKey = "COLE_SUA_ANON_KEY_AQUI";
 
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    async function register() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+async function register() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const message = document.getElementById("message");
 
-      if (!email || !password) {
-        document.getElementById("message").innerText = "Preencha email e senha.";
-        return;
-      }
-
-      const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
         email: email,
-        password: password
-      });
+        password: password,
+    });
 
-      if (error) {
-        document.getElementById("message").innerText = error.message;
-      } else {
-        document.getElementById("message").style.color = "green";
-        document.getElementById("message").innerText = "Conta criada! Agora faça login.";
-      }
+    if (error) {
+        message.innerText = error.message;
+    } else {
+        message.style.color = "green";
+        message.innerText = "Conta criada! Verifique seu email.";
     }
+}
 
-    async function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+async function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const message = document.getElementById("message");
 
-      if (!email || !password) {
-        document.getElementById("message").innerText = "Preencha email e senha.";
-        return;
-      }
-
-      const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
-        password: password
-      });
+        password: password,
+    });
 
-      if (error) {
-        document.getElementById("message").innerText = error.message;
-      } else {
-        window.location.href = "app.html";
-      }
+    if (error) {
+        message.innerText = "Email ou senha incorretos.";
+    } else {
+        message.style.color = "green";
+        message.innerText = "Login realizado!";
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 1000);
     }
-  </script>
+}
+
+</script>
 
 </body>
 </html>
