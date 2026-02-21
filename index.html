@@ -71,19 +71,12 @@ button {
 
 <script>
 
-// =============================
-// CONFIGURAÇÃO SUPABASE
-// =============================
+const SUPABASE_URL = "https://rsbdxeyplwbaxvrublgr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts";
 
-const supabaseUrl = "https://rsbdxeyplwbaxvrublgr.supabase.co";
-const supabaseKey = "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts";
-
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-// =============================
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
 // REGISTRO
-// =============================
-
 document.getElementById("registerBtn").addEventListener("click", async () => {
 
     const email = document.getElementById("email").value;
@@ -93,7 +86,7 @@ document.getElementById("registerBtn").addEventListener("click", async () => {
     message.innerText = "Processando...";
     message.style.color = "black";
 
-    const { error } = await supabase.auth.signUp({
+    const { error } = await client.auth.signUp({
         email: email,
         password: password,
     });
@@ -107,10 +100,7 @@ document.getElementById("registerBtn").addEventListener("click", async () => {
     }
 });
 
-// =============================
 // LOGIN
-// =============================
-
 document.getElementById("loginBtn").addEventListener("click", async () => {
 
     const email = document.getElementById("email").value;
@@ -120,7 +110,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     message.innerText = "Verificando...";
     message.style.color = "black";
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await client.auth.signInWithPassword({
         email: email,
         password: password,
     });
@@ -131,10 +121,6 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     } else {
         message.innerText = "Login realizado com sucesso!";
         message.style.color = "green";
-
-        setTimeout(() => {
-            window.location.href = "dashboard.html";
-        }, 1000);
     }
 });
 
