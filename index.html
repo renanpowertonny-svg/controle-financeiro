@@ -51,7 +51,6 @@ button {
     text-align: center;
     font-size: 14px;
     min-height: 20px;
-    color: red;
 }
 </style>
 </head>
@@ -64,57 +63,80 @@ button {
     <input type="email" id="email" placeholder="Digite seu email">
     <input type="password" id="password" placeholder="Digite sua senha">
 
-    <button class="btn-login" onclick="login()">Entrar</button>
-    <button class="btn-register" onclick="register()">Criar Conta</button>
+    <button class="btn-login" id="loginBtn">Entrar</button>
+    <button class="btn-register" id="registerBtn">Criar Conta</button>
 
     <div class="message" id="message"></div>
 </div>
 
 <script>
 
-const supabaseUrl = "COLE_SUA_URL_AQUI";
-const supabaseKey = "COLE_SUA_ANON_KEY_AQUI";
+// =============================
+// CONFIGURAÇÃO SUPABASE
+// =============================
+
+const supabaseUrl = "https://rsbdxeyplwbaxvrublgr.supabase.co";
+const supabaseKey = "sb_publishable_WgNRWWeTsCgQ1nUjG9QEUA_ixy3O2Ts";
 
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-async function register() {
+// =============================
+// REGISTRO
+// =============================
+
+document.getElementById("registerBtn").addEventListener("click", async () => {
+
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const message = document.getElementById("message");
 
-    const { data, error } = await supabase.auth.signUp({
+    message.innerText = "Processando...";
+    message.style.color = "black";
+
+    const { error } = await supabase.auth.signUp({
         email: email,
         password: password,
     });
 
     if (error) {
         message.innerText = error.message;
+        message.style.color = "red";
     } else {
-        message.style.color = "green";
         message.innerText = "Conta criada! Verifique seu email.";
+        message.style.color = "green";
     }
-}
+});
 
-async function login() {
+// =============================
+// LOGIN
+// =============================
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const message = document.getElementById("message");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    message.innerText = "Verificando...";
+    message.style.color = "black";
+
+    const { error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
     });
 
     if (error) {
         message.innerText = "Email ou senha incorretos.";
+        message.style.color = "red";
     } else {
+        message.innerText = "Login realizado com sucesso!";
         message.style.color = "green";
-        message.innerText = "Login realizado!";
+
         setTimeout(() => {
             window.location.href = "dashboard.html";
         }, 1000);
     }
-}
+});
 
 </script>
 
